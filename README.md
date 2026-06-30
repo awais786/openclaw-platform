@@ -54,7 +54,9 @@ Tools exposed:
 - `draft_contact_us_reply(message)` → `{text, citations, grounded}` (escalate when `grounded` is false)
 - `list_knowledge_base()` → the PDFs available for grounding
 
-Point your MCP client at it:
+### A) OpenClaw on the SAME machine — stdio (simplest)
+
+OpenClaw launches the server as a local subprocess. Nothing is exposed to the network.
 
 ```json
 {
@@ -69,6 +71,25 @@ Point your MCP client at it:
   }
 }
 ```
+
+### B) OpenClaw on ANOTHER machine — HTTP
+
+Run the server as a network service on a host the agent can reach:
+
+```bash
+OPENCLAW_MCP_TRANSPORT=streamable-http OPENCLAW_MCP_HOST=0.0.0.0 OPENCLAW_MCP_PORT=8000 \
+  ANTHROPIC_API_KEY=... OPENCLAW_LIBRARY=/abs/path/openclaw_library.json openclaw-mcp
+```
+
+Point the remote OpenClaw at the URL:
+
+```json
+{ "mcpServers": { "openclaw": { "url": "http://<server-host>:8000/mcp" } } }
+```
+
+> ⚠️ This is now a network service that triggers Claude calls (cost) and exposes your KB. Put it
+> on a private network / VPN, firewall the port to the agent's IP, or front it with a reverse proxy
+> that adds auth + TLS. Don't expose it open to the internet.
 
 The agent does the reasoning and decides when to call `draft_contact_us_reply`; this server only
 drafts and reports whether the answer was grounded in the PDFs.
