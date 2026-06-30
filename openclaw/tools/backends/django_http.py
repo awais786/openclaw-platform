@@ -74,3 +74,18 @@ class DjangoBackend:
 
     def log_tool_call(self, record: dict) -> None:
         self._post("/api/tool-calls", record)
+
+    # ----- review queue -----
+    def list_pending_drafts(self) -> list[dict]:
+        return self._get("/api/drafts", status="pending_review").get("results", [])
+
+    def get_draft(self, draft_id: str) -> dict | None:
+        return self._get(f"/api/drafts/{draft_id}")
+
+    def resolve_draft(
+        self, draft_id: str, *, status: str, final_text: str = "",
+        review_note: str = "", edit_diff: str = "",
+    ) -> None:
+        self._post(f"/api/drafts/{draft_id}/resolve",
+                   {"status": status, "final_text": final_text,
+                    "review_note": review_note, "edit_diff": edit_diff})

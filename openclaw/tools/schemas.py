@@ -59,6 +59,16 @@ class Draft:
     status: str                       # pending_review | auto_approved | needs_human
     prompt_version: str = "v1"
     model: str | None = None
+    draft_id: str = ""                # set by the backend when persisted
+
+
+@dataclass
+class ReviewResult:
+    draft_id: str
+    status: str                       # approved | edited | rejected
+    published: bool
+    review_note: str = ""
+    edit_diff: str = ""
 
 
 @dataclass

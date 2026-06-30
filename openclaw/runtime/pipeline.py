@@ -57,7 +57,7 @@ class Pipeline:
             return self._needs_human(intent, confidence)
 
         draft = self._draft(msg, intent, confidence, chunks)
-        self.exec.save_draft(msg.thread_key, draft, idempotency_key=f"draft:{key}")
+        draft.draft_id = self.exec.save_draft(msg.thread_key, draft, idempotency_key=f"draft:{key}")
 
         # Gate the publish action. Phase 1 default = human_approval, so this queues.
         decision, _ = self.exec.publish_reply(

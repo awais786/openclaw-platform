@@ -14,6 +14,7 @@ class LocalBackend:
         self._seen: set[str] = set()           # idempotency keys
         self._conversations: dict[str, list[dict]] = {}
         self._tool_calls: list[dict] = []
+        self._drafts: dict[str, dict] = {}     # draft_id -> review record
         # Default policy: everything needs a human; refunds/legal are hard-walled.
         self._policy = {
             "publish_reply": "human_approval",
@@ -51,10 +52,23 @@ class LocalBackend:
         return msg.thread_key
 
     def save_draft(self, thread_key: str, draft: Draft, *, idempotency_key: str) -> str:
+        draft_id = f"d{len(self._drafts) + 1}"
+        self._drafts[draft_id] = {
+            "id": draft_id,
+            "thread_key": thread_key,
+            "channel": thread_key.split(":", 1)[0],   # connector sets "{channel}:{id}"
+            "intent": draft.intent,
+            "text": draft.text,
+            "status": draft.status,
+            "citations": draft.citations,
+            "review_note": "",
+            "edit_diff": "",
+            "final_text": "",
+        }
         self._conversations.setdefault(thread_key, []).append(
-            {"direction": "draft", "text": draft.text, "status": draft.status}
+            {"direction": "draft", "draft_id": draft_id, "text": draft.text, "status": draft.status}
         )
-        return f"draft:{thread_key}"
+        return draft_id
 
     def publish_reply(self, thread_key: str, text: str, *, idempotency_key: str) -> str:
         if idempotency_key in self._seen:
@@ -75,3 +89,20 @@ class LocalBackend:
 
     def log_tool_call(self, record: dict) -> None:
         self._tool_calls.append(record)
+
+    # ----- review queue -----
+    def list_pending_drafts(self) -> list[dict]:
+        return [d for d in self._drafts.values() if d["status"] == "pending_review"]
+
+    def get_draft(self, draft_id: str) -> dict | None:
+        return self._drafts.get(draft_id)
+
+    def resolve_draft(
+        self, draft_id: str, *, status: str, final_text: str = "",
+        review_note: str = "", edit_diff: str = "",
+    ) -> None:
+        rec = self._drafts[draft_id]
+        rec["status"] = status
+        rec["final_text"] = final_text
+        rec["review_note"] = review_note
+        rec["edit_diff"] = edit_diff
