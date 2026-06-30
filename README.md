@@ -35,16 +35,48 @@ backend_django/           # Django app implementing the tools (Postgres + pgvect
 examples/                 # run-it-directly demos
 ```
 
-## Run it directly (no Django)
+## Quickstart
 
 ```bash
-pip install -e .
-python -m examples.run_local
+make dev            # pip install -e ".[dev]"  (engine + pytest + ruff)
+make test           # run the test suite (uses the offline EchoLLM stub)
+openclaw demo       # run a sample contact-us message through the pipeline
+```
+
+Run a single message:
+
+```bash
+openclaw run --message "How do I reset my password?" --email user@example.com
+```
+
+## Use Claude (real LLM)
+
+The engine auto-selects the provider: if the `anthropic` SDK and credentials are present it uses
+**ClaudeLLM** (`claude-opus-4-8` for drafting, `claude-haiku-4-5` for classification); otherwise it
+falls back to the offline **EchoLLM** stub. Configure via env (see `.env.example`):
+
+```bash
+export ANTHROPIC_API_KEY=...        # or `ant auth login`
+openclaw demo
+```
+
+Wiring is one entry point:
+
+```python
+from openclaw import Engine
+engine = Engine.from_settings()                 # provider + backend from env/Settings
+draft = engine.handle_raw("contactus", {"id": 1, "email": "u@x.com", "message": "..."})
 ```
 
 ## Connect Django
 
-Set the backend to `DjangoBackend(base_url=..., token=...)` and point it at the running
-`backend_django` service. The tool contract is identical; only the backend changes.
+Set `OPENCLAW_BACKEND=django` (+ `OPENCLAW_DJANGO_URL` / `OPENCLAW_DJANGO_TOKEN`) and the engine uses
+`DjangoBackend` (REST) instead of `LocalBackend`. The tool contract is identical; only the backend
+changes. Point it at the running `backend_django` service.
+
+## Config
+
+All settings are env-driven via `Settings.from_env()` — models, thresholds, and backend selection.
+See `.env.example` for the full list.
 # openclaw-platform
 # openclaw-platform

@@ -48,8 +48,10 @@ class ToolExecutor:
         self._audit("save_draft", GateDecision.AUTO, idempotency_key)
         return out
 
-    def publish_reply(self, thread_key: str, text: str, *, channel: str, intent: str,
-                      idempotency_key: str, approved_by: str | None = None) -> tuple[GateDecision, str | None]:
+    def publish_reply(
+        self, thread_key: str, text: str, *, channel: str, intent: str,
+        idempotency_key: str, approved_by: str | None = None,
+    ) -> tuple[GateDecision, str | None]:
         decision = self._gate("publish_reply", channel=channel, intent=intent)
         if decision is GateDecision.QUEUED and not approved_by:
             self._audit("publish_reply", decision, idempotency_key)
