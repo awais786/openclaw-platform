@@ -9,9 +9,6 @@
 > A company-wide AI engine ("OpenClaw") that monitors communication channels, understands
 > requests, retrieves company knowledge, and produces high-quality responses — proposing first,
 > and earning the right to act over time. Django + PostgreSQL provide the business/application layer.
->
-> **Diagrams:** see `openclaw-diagrams.md` (architecture, pipeline flow, tool boundary,
-> propose-then-approve sequence, capability-gating decision).
 
 ---
 
