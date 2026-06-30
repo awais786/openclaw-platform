@@ -44,5 +44,7 @@ make lint      # ruff
 
 ## Design docs
 
-Broader platform plan (channels, approval workflow, Django, etc.) lives in `docs/` — that's
-the longer-term vision, not this first use case.
+- **Active spec:** [`docs/contact-us-spec.md`](docs/contact-us-spec.md) — the current build
+  (contact-us reply, PDFs read by Claude via the Files API).
+- Longer-term vision (multi-channel, approval workflow, Django, etc.):
+  [`docs/openclaw-plan.md`](docs/openclaw-plan.md) — not the current build.

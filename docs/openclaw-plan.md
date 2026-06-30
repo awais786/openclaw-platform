@@ -1,5 +1,11 @@
 # OpenClaw — AI Customer Engagement Platform: Complete Plan
 
+> **STATUS — long-term vision, not the current build.** The active spec is
+> [`contact-us-spec.md`](contact-us-spec.md): contact-us replies grounded in a handful of PDFs
+> (read directly by Claude via the Files API), human-reviewed before sending. The pipeline,
+> retrieval index, capability gating, approval workflow, and Django backend described below are
+> the platform to grow into later — add them when a real need appears.
+
 > A company-wide AI engine ("OpenClaw") that monitors communication channels, understands
 > requests, retrieves company knowledge, and produces high-quality responses — proposing first,
 > and earning the right to act over time. Django + PostgreSQL provide the business/application layer.
