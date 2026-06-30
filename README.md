@@ -113,6 +113,15 @@ token instead of a literal one in the file, OpenClaw also offers `"auth": "oauth
 The agent does the reasoning and decides when to call `draft_contact_us_reply`; this server only
 drafts and reports whether the answer was grounded in the PDFs.
 
+### The OpenClaw side (Gmail → draft → human review → send)
+
+OpenClaw owns the email: it reads the support email from Gmail, calls our tool, gets a human's
+approval, and sends the reply. The glue is an OpenClaw **skill** in
+[`openclaw-skill/SKILL.md`](openclaw-skill/SKILL.md) — install it into your OpenClaw. It instructs
+the agent to: call `draft_contact_us_reply`, show grounded drafts to a reviewer for approval, send
+on approval, and escalate (never guess) when the answer isn't grounded. No email code lives in this
+package — Gmail read/send is OpenClaw's job.
+
 ## Dev
 
 ```bash
