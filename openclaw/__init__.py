@@ -1,11 +1,8 @@
-"""OpenClaw — standalone AI customer-engagement engine.
+"""OpenClaw — draft contact-us replies grounded in a knowledge base, using Claude."""
 
-The engine knows only *tools*; where they run is a pluggable ToolBackend
-(LocalBackend for standalone use, DjangoBackend to connect the Django app).
-"""
+from .kb import Chunk, KnowledgeBase
+from .llm import ClaudeLLM
+from .reply import Reply, draft_reply
 
-from .config import Settings
-from .engine import Engine
-
-__version__ = "0.1.0"
-__all__ = ["Engine", "Settings", "__version__"]
+__version__ = "0.2.0"
+__all__ = ["KnowledgeBase", "Chunk", "ClaudeLLM", "Reply", "draft_reply", "__version__"]

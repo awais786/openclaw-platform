@@ -1,7 +1,4 @@
-.PHONY: install dev lint fmt test demo
-
-install:
-	pip install -e .
+.PHONY: dev lint test reply
 
 dev:
 	pip install -e ".[dev]"
@@ -9,11 +6,8 @@ dev:
 lint:
 	ruff check openclaw tests
 
-fmt:
-	ruff check --fix openclaw tests
-
 test:
 	pytest -q
 
-demo:
-	openclaw demo
+reply:
+	openclaw --message "How do I reset my password?"
