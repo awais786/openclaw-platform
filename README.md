@@ -14,6 +14,15 @@ openclaw/
   cli.py      # openclaw upload ... | openclaw reply --message "..."
 ```
 
+## Why a separate tool (not just OpenClaw)?
+
+OpenClaw is a capable agent — it could read PDFs and reply on its own. This tool exists for one
+reason: **control over customer-facing answers.** It answers *only* from your approved PDFs and
+returns an explicit `grounded` flag, so OpenClaw can **reply when grounded and escalate (never
+guess) when not** — instead of hoping a general agent stays on-script. It also keeps the knowledge
+base central/reusable and pins the answer model to Claude. If you don't need that guarantee, you
+don't need this — give OpenClaw the PDFs directly.
+
 ## Use it
 
 ```bash
