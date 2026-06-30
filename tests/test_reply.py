@@ -1,36 +1,44 @@
-from openclaw.kb import KnowledgeBase
+from openclaw.library import Doc
 from openclaw.reply import draft_reply
 
 
 class FakeLLM:
-    """Records the prompt and returns a canned answer — no network/key needed."""
+    """Returns a cited answer; records what it was given. No key/anthropic needed."""
 
     def __init__(self) -> None:
-        self.last_user = None
+        self.called = False
+        self.docs = None
 
-    def complete(self, *, system, user, max_tokens=1024):
-        self.last_user = user
-        return "Open Settings > Security and click Reset. [password.md]"
-
-
-def _kb():
-    kb = KnowledgeBase()
-    kb.add("password.md", "To reset your password, open Settings > Security and click Reset.")
-    return kb
+    def reply_from_pdfs(self, *, system, message, docs, max_tokens=1024):
+        self.called = True
+        self.docs = docs
+        return "You can get a refund within 14 days. [refunds.pdf]", ["refunds.pdf"]
 
 
-def test_grounded_reply_cites_sources_and_passes_context_to_llm():
+class PuntLLM:
+    """Simulates Claude declining to answer — no citations."""
+
+    def reply_from_pdfs(self, *, system, message, docs, max_tokens=1024):
+        return "I don't have that information.", []
+
+
+def test_grounded_reply_cites_sources_and_passes_docs():
     llm = FakeLLM()
-    reply = draft_reply("How do I reset my password?", _kb(), llm)
+    reply = draft_reply("How do refunds work?", [Doc("f1", "refunds.pdf")], llm)
     assert reply.grounded is True
-    assert reply.citations == ["password.md"]
+    assert reply.citations == ["refunds.pdf"]
     assert reply.text
-    assert "Settings > Security" in llm.last_user   # KB context reached the model
+    assert llm.docs[0].name == "refunds.pdf"   # the PDF reached the model
 
 
-def test_no_kb_match_does_not_call_the_llm():
+def test_no_pdfs_does_not_call_the_llm():
     llm = FakeLLM()
-    reply = draft_reply("totally unrelated question", KnowledgeBase(), llm)
+    reply = draft_reply("anything", [], llm)
     assert reply.grounded is False
     assert reply.text == ""
-    assert llm.last_user is None                     # model never called without grounding
+    assert llm.called is False
+
+
+def test_uncited_answer_is_not_grounded():
+    reply = draft_reply("obscure question", [Doc("f1", "refunds.pdf")], PuntLLM())
+    assert reply.grounded is False   # no citations -> escalate

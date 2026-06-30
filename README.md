@@ -2,38 +2,43 @@
 
 Draft **contact-us replies** grounded in a **knowledge base**, using **Claude**.
 
-That's the whole first use case: a customer message comes in → retrieve the relevant
-knowledge → the LLM drafts a reply that answers only from that knowledge, with sources.
+The whole first use case: **upload a handful of company PDFs once**, then for each customer
+message Claude **reads the PDFs directly** and drafts a reply that answers only from them, with
+citations. No vector DB, no retrieval index.
 
 ```
 openclaw/
-  kb.py      # KnowledgeBase: add() / from_dir() / search()
-  llm.py     # ClaudeLLM
-  reply.py   # draft_reply(message, kb, llm) -> Reply(text, citations, grounded)
-  cli.py     # openclaw --message "..."
+  library.py  # the KB = uploaded PDFs: Doc(file_id, name) + upload_pdfs / save / load
+  llm.py      # ClaudeLLM: upload_pdf() + reply_from_pdfs()
+  reply.py    # draft_reply(message, docs, llm) -> Reply(text, citations, grounded)
+  cli.py      # openclaw upload ... | openclaw reply --message "..."
 ```
 
 ## Use it
 
 ```bash
-make dev                  # pip install -e ".[dev]"
-export ANTHROPIC_API_KEY=...        # or `ant auth login`
-openclaw --message "How do I reset my password?"
-openclaw --message "..." --docs ./kb   # load .md/.txt files as the knowledge base
+make dev                              # pip install -e ".[dev]"
+export ANTHROPIC_API_KEY=...          # or `ant auth login`
+
+openclaw upload faq.pdf refunds.pdf   # upload once → saves openclaw_library.json
+openclaw reply --message "How do refunds work?"
 ```
 
 In code:
 
 ```python
-from openclaw import KnowledgeBase, ClaudeLLM, draft_reply
+from openclaw import ClaudeLLM, upload_pdfs, save_library, load_library, draft_reply
 
-kb = KnowledgeBase.from_dir("./kb")          # your company docs (.md/.txt)
-reply = draft_reply("How do I get a refund?", kb, ClaudeLLM())
+llm = ClaudeLLM()
+docs = upload_pdfs(["faq.pdf", "refunds.pdf"], llm)   # run once when docs change
+save_library(docs, "openclaw_library.json")
+
+reply = draft_reply("How do I get a refund?", load_library("openclaw_library.json"), llm)
 print(reply.text, reply.citations)
 ```
 
-If no relevant knowledge is found, `reply.grounded` is `False` and no answer is invented —
-escalate to a human.
+If Claude cites nothing (the PDFs don't cover the question), `reply.grounded` is `False` and no
+answer is invented — escalate to a human.
 
 ## Dev
 
