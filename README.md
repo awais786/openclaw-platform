@@ -78,18 +78,23 @@ Run the server as a network service on a host the agent can reach:
 
 ```bash
 OPENCLAW_MCP_TRANSPORT=streamable-http OPENCLAW_MCP_HOST=0.0.0.0 OPENCLAW_MCP_PORT=8000 \
+  OPENCLAW_MCP_TOKEN=$(openssl rand -hex 24) \
   ANTHROPIC_API_KEY=... OPENCLAW_LIBRARY=/abs/path/openclaw_library.json openclaw-mcp
 ```
 
-Point the remote OpenClaw at the URL:
+Point the remote OpenClaw at the URL, sending the token:
 
 ```json
-{ "mcpServers": { "openclaw": { "url": "http://<server-host>:8000/mcp" } } }
+{ "mcpServers": { "openclaw": {
+    "url": "http://<server-host>:8000/mcp",
+    "headers": { "Authorization": "Bearer <the-token>" }
+} } }
 ```
 
-> ⚠️ This is now a network service that triggers Claude calls (cost) and exposes your KB. Put it
-> on a private network / VPN, firewall the port to the agent's IP, or front it with a reverse proxy
-> that adds auth + TLS. Don't expose it open to the internet.
+> ⚠️ The token is an app-layer gate, not transport security. Still keep this on a private
+> network / VPN and put TLS in front (reverse proxy) — don't expose it open to the internet.
+> Your OpenClaw MCP client must support sending an `Authorization` header; if it doesn't,
+> enforce auth at a reverse proxy instead.
 
 The agent does the reasoning and decides when to call `draft_contact_us_reply`; this server only
 drafts and reports whether the answer was grounded in the PDFs.
