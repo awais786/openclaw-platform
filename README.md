@@ -54,18 +54,22 @@ Tools exposed:
 - `draft_contact_us_reply(message)` → `{text, citations, grounded}` (escalate when `grounded` is false)
 - `list_knowledge_base()` → the PDFs available for grounding
 
+Add the server under `mcp.servers` in OpenClaw's config (`~/.openclaw/openclaw.json`).
+
 ### A) OpenClaw on the SAME machine — stdio (simplest)
 
 OpenClaw launches the server as a local subprocess. Nothing is exposed to the network.
 
 ```json
 {
-  "mcpServers": {
-    "openclaw": {
-      "command": "openclaw-mcp",
-      "env": {
-        "ANTHROPIC_API_KEY": "...",
-        "OPENCLAW_LIBRARY": "/abs/path/openclaw_library.json"
+  "mcp": {
+    "servers": {
+      "openclaw": {
+        "command": "openclaw-mcp",
+        "env": {
+          "ANTHROPIC_API_KEY": "...",
+          "OPENCLAW_LIBRARY": "/abs/path/openclaw_library.json"
+        }
       }
     }
   }
@@ -82,14 +86,24 @@ OPENCLAW_MCP_TRANSPORT=streamable-http OPENCLAW_MCP_HOST=0.0.0.0 OPENCLAW_MCP_PO
   ANTHROPIC_API_KEY=... OPENCLAW_LIBRARY=/abs/path/openclaw_library.json openclaw-mcp
 ```
 
-Point the remote OpenClaw at the URL, sending the token:
+Point the remote OpenClaw at the URL, sending the token (in `~/.openclaw/openclaw.json`):
 
 ```json
-{ "mcpServers": { "openclaw": {
-    "url": "http://<server-host>:8000/mcp",
-    "headers": { "Authorization": "Bearer <the-token>" }
-} } }
+{
+  "mcp": {
+    "servers": {
+      "openclaw": {
+        "url": "http://<server-host>:8000/mcp",
+        "transport": "streamable-http",
+        "headers": { "Authorization": "Bearer <the-token>" }
+      }
+    }
+  }
+}
 ```
+
+OpenClaw's MCP client supports `streamable-http` (what our server runs) and SSE. For a managed
+token instead of a literal one in the file, OpenClaw also offers `"auth": "oauth"` + `openclaw mcp login`.
 
 > ⚠️ The token is an app-layer gate, not transport security. Still keep this on a private
 > network / VPN and put TLS in front (reverse proxy) — don't expose it open to the internet.
