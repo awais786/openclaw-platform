@@ -9,9 +9,11 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.5"]
+mcp = ["mcp>=1.2"]   # MCP server so an MCP client (e.g. OpenClaw) can call the reply tool
 
 [project.scripts]
 openclaw = "openclaw.cli:main"
+openclaw-mcp = "openclaw.mcp_server:main"
 
 [build-system]
 requires = ["setuptools>=68"]

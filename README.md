@@ -40,6 +40,39 @@ print(reply.text, reply.citations)
 If Claude cites nothing (the PDFs don't cover the question), `reply.grounded` is `False` and no
 answer is invented — escalate to a human.
 
+## Connect to OpenClaw (MCP)
+
+OpenClaw (or any MCP client) calls this capability as a tool. Run it as an MCP server:
+
+```bash
+pip install -e ".[mcp]"
+openclaw upload faq.pdf refunds.pdf     # build the knowledge base once
+openclaw-mcp                            # starts the MCP server (stdio)
+```
+
+Tools exposed:
+- `draft_contact_us_reply(message)` → `{text, citations, grounded}` (escalate when `grounded` is false)
+- `list_knowledge_base()` → the PDFs available for grounding
+
+Point your MCP client at it:
+
+```json
+{
+  "mcpServers": {
+    "openclaw": {
+      "command": "openclaw-mcp",
+      "env": {
+        "ANTHROPIC_API_KEY": "...",
+        "OPENCLAW_LIBRARY": "/abs/path/openclaw_library.json"
+      }
+    }
+  }
+}
+```
+
+The agent does the reasoning and decides when to call `draft_contact_us_reply`; this server only
+drafts and reports whether the answer was grounded in the PDFs.
+
 ## Dev
 
 ```bash
