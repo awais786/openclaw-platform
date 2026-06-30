@@ -23,6 +23,8 @@ import os
 
 from mcp.server.fastmcp import FastMCP
 
+from .backends import FilesApiBackend
+from .library import load_library
 from .service import contact_us_reply, knowledge_base
 
 _LIBRARY = os.environ.get("OPENCLAW_LIBRARY", "openclaw_library.json")
@@ -51,7 +53,9 @@ def draft_contact_us_reply(message: str) -> dict:
     Returns {text, citations, grounded}. If `grounded` is false, the PDFs don't cover the
     question — escalate to a human instead of sending the text.
     """
-    return contact_us_reply(message, llm=_get_llm(), library_path=_LIBRARY)
+    # Composition root: swap FilesApiBackend for a RAG backend here to change the source.
+    backend = FilesApiBackend(_get_llm(), load_library(_LIBRARY))
+    return contact_us_reply(message, backend=backend)
 
 
 @mcp.tool()

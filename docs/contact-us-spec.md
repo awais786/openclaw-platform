@@ -56,10 +56,13 @@ Reply = { text: str, citations: list[str], grounded: bool }
 ## 5. Knowledge base
 
 - **Source:** a handful of company PDFs (FAQ, policies, help docs).
-- **Hosting/retrieval:** Anthropic Files API. Upload returns a `file_id`; files persist and are
-  reused across requests. We keep the `file_id`s in a small local list/config.
-- **Grounding rule:** Claude is instructed to answer **only** from the attached PDFs and to cite
-  the source; if the answer isn't in them, say so (→ escalate).
+- **Pluggable backend (agnostic):** the pipeline depends only on a `KnowledgeBackend` protocol
+  (`draft_reply(message) -> Reply`). The **default** backend (`FilesApiBackend`) has Claude read
+  PDFs uploaded to the Anthropic Files API — upload returns a `file_id`, files persist and are
+  reused, ids kept in a small local list. To switch to a RAG service/vector DB later, implement
+  the same protocol and swap it in at the composition root (`mcp_server.py`) — nothing else changes.
+- **Grounding rule:** answer **only** from the knowledge; cite the source; if the answer isn't
+  there, say so (→ `grounded: false` → escalate).
 
 ## 6. Claude Files API — implementation notes
 
